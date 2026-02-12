@@ -4,15 +4,18 @@ import com.nikolai.projectmanager.dto.AuthResponse;
 import com.nikolai.projectmanager.dto.LoginRequest;
 import com.nikolai.projectmanager.dto.RegisterRequest;
 import com.nikolai.projectmanager.dto.UserResponse;
+import com.nikolai.projectmanager.exception.*;
 import com.nikolai.projectmanager.model.User;
 import com.nikolai.projectmanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -22,13 +25,21 @@ public class UserService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    private static final Pattern EMAIL_PATTERN =
+        Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+
+
     public AuthResponse register(RegisterRequest request) {
+        if (!isValidEmail(request.email())) {
+            throw new InvalidEmailException("Email is not valid");
+        }
+
         if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new UserAlreadyExistsException("Email already exists");
         }
 
         if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new UserAlreadyExistsException("Username already exists");
         }
 
         User user = User.builder()
@@ -46,20 +57,27 @@ public class UserService {
     }
 
     public AuthResponse authenticate(LoginRequest request) {
+    try {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.username(),
                         request.password()
                 )
         );
-
+    } catch (AuthenticationException ex) {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        String jwtToken = jwtService.generateToken(user);
-
-        return new AuthResponse(jwtToken, user.getEmail(), user.getUsername());
+        throw new InvalidPasswordException("Invalid password");
     }
+
+    User user = userRepository.findByUsername(request.username())
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+    String jwtToken = jwtService.generateToken(user);
+
+    return new AuthResponse(jwtToken, user.getEmail(), user.getUsername());
+}
 
     public List<UserResponse> searchUsersByUsername(String username) {
         List<User> users = userRepository.findByUsernameContainingIgnoreCase(username);
@@ -85,5 +103,9 @@ public class UserService {
                 user.getFirstName(),
                 user.getLastName()
         );
+    }
+
+    private boolean isValidEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email).matches();
     }
 }
