@@ -32,14 +32,9 @@ public class UserController {
     @GetMapping("/profile")
     public ResponseEntity<UserResponse> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName();
+        String currentUsername = authentication.getName();
 
-        UserResponse currentUser = userService.searchUsersByUsername("")
-                .stream()
-                .filter(user -> user.email().equals(currentUserEmail))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Current user not found"));
-
+        UserResponse currentUser = userService.findUserByUsername(currentUsername);
         return ResponseEntity.ok(currentUser);
     }
 }

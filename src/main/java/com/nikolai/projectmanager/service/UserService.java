@@ -27,6 +27,10 @@ public class UserService {
             throw new RuntimeException("Email already exists");
         }
 
+        if (userRepository.findByUsername(request.username()).isPresent()) {
+            throw new RuntimeException("Username already exists");
+        }
+
         User user = User.builder()
                 .email(request.email())
                 .username(request.username())
@@ -44,12 +48,12 @@ public class UserService {
     public AuthResponse authenticate(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.email(),
+                        request.username(),
                         request.password()
                 )
         );
 
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String jwtToken = jwtService.generateToken(user);

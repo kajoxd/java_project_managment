@@ -1,4 +1,3 @@
-
 package com.nikolai.projectmanager.config;
 
 import com.nikolai.projectmanager.repository.UserRepository;
@@ -22,7 +21,7 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByEmail(username)
+        return username -> userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
