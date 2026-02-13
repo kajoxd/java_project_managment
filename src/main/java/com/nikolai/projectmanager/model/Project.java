@@ -12,7 +12,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "project")
+@Table(name = "project",
+       uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "owner_id"})})
 public class Project {
 
     @Id
@@ -25,6 +26,10 @@ public class Project {
     private String description;
 
     private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
     @OneToMany(mappedBy = "project")
     private Set<ProjectUser> users = new HashSet<>();
