@@ -6,6 +6,7 @@ import com.nikolai.projectmanager.model.Project;
 import com.nikolai.projectmanager.model.ProjectUser;
 import com.nikolai.projectmanager.model.ProjectUserRole;
 import com.nikolai.projectmanager.model.Role;
+import com.nikolai.projectmanager.model.RoleType;
 import com.nikolai.projectmanager.model.User;
 import com.nikolai.projectmanager.repository.ProjectRepository;
 import com.nikolai.projectmanager.repository.ProjectUserRepository;
@@ -47,14 +48,8 @@ public class ProjectService {
 
         ProjectUser savedProjectUser = projectUserRepository.save(projectUser);
 
-        Role ownerRole = roleRepository.findByName("OWNER")
-                .orElseGet(() -> {
-                    Role newRole = Role.builder()
-                            .name("OWNER")
-                            .description("Project owner with full access")
-                            .build();
-                    return roleRepository.save(newRole);
-                });
+        Role ownerRole = roleRepository.findByRoleType(RoleType.OWNER)
+                .orElseThrow(() -> new RuntimeException("OWNER role not found in database"));
 
         ProjectUserRole projectUserRole = ProjectUserRole.builder()
                 .projectUser(savedProjectUser)

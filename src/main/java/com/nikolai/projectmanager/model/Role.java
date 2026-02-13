@@ -20,10 +20,20 @@ public class Role {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RoleType roleType;
+
+    @Column(unique = true, nullable = false)
     private String name;
 
     private String description;
 
     @OneToMany(mappedBy = "role")
     private Set<ProjectUserRole> projectUserRoles = new HashSet<>();
+
+    public Role(RoleType roleType) {
+        this.roleType = roleType;
+        this.name = roleType.getRoleName();
+        this.description = roleType.getDescription();
+    }
 }
