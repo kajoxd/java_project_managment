@@ -28,9 +28,6 @@ public class Role {
 
     private String description;
 
-    @OneToMany(mappedBy = "role")
-    private Set<ProjectUserRole> projectUserRoles = new HashSet<>();
-
     public Role(RoleType roleType) {
         this.roleType = roleType;
         this.name = roleType.getRoleName();

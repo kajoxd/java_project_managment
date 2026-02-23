@@ -30,8 +30,9 @@ public class ProjectUser {
 
     private String status;
 
-    @OneToMany(mappedBy = "projectUser")
-    private Set<ProjectUserRole> roles = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     @OneToMany(mappedBy = "assignedTo")
     private Set<Task> tasksAssigned = new HashSet<>();
